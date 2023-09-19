@@ -1,12 +1,14 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>      
 LiquidCrystal_I2C lcd(0x27, 20, 4); 
-
 #include <SPI.h>
+//Estas son algunas librerías que facilitaran en gran medida la programación de la placa.
 
 #define MAX6675_SO 2
 #define MAX6675_CS 3
 #define MAX6675_SCK 4
+//Aquí definimos el tipo de sensor termopar utilizado.
+
 
 void setup()
 {
@@ -16,6 +18,7 @@ void setup()
     lcd.print("T.R. Milan");
     delay(3500);
     lcd.clear();
+//He establecido los sensores y pins que aparecerán a continuación además de establecer como mensaje inicial en la placa LCD "T.R. Milan".
 }
 
 void loop()
@@ -41,11 +44,11 @@ double leer_termopar()
     digitalWrite(MAX6675_CS, LOW);
     delay(1);
 
-    // Read in 16 bits,
-    //  15    = 0 siempre
-    //  14..2 = 0.25 valores válidos
-    //  2     = 1 si el circuito esta abierto
-    //  1..0  = error de fabricación
+        // Los posibles resultados que nos puede dar el sensor varían entre 16 bits. Estos nos dan la siguiente información:
+    //  15 siempre es igual a 0, lo que limita el sensor como temperatura mínima (no mide temperaturas debajo de los 0°C).
+    //  De 14 hasta 2 nos dará valores válidos.
+    //  Cuando el valor dado sea 2, indicará que el circuito está abierto.
+    //  Finalmente, de 1 hasta 0 marcará un error de fabricación.
 
     v = shiftIn(MAX6675_SO, MAX6675_SCK, MSBFIRST);
     v <<= 8;
@@ -54,11 +57,9 @@ double leer_termopar()
     digitalWrite(MAX6675_CS, HIGH);
     if (v & 0x4)
     {
-        // Bit 2 indica si el termopar esta conectado
         return NAN;
     }
 
-    // Los tres bits mas bajos (0,1,2) se deben descartar
     v >>= 3;
 
     return v * 0.25;
